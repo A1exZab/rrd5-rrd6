@@ -1,24 +1,35 @@
-import {
-	BrowserRouter,
-	Switch,
-	Route,
-	Redirect,
-	useRouteMatch,
-	useParams,
-	NavLink
-} from 'react-router-dom'
+import { Navigate, NavLink, Outlet, useParams, useRoutes } from 'react-router-dom'
 
 function App() {
+	const routes = useRoutes([
+		{
+			path: '/',
+			element: <HomePage />
+		},
+		{
+			path: 'users',
+			element: <UsersLayout />,
+			children: [
+				{ index: true, element: <UserListPage /> },
+				{
+					path: ':userId',
+					element: <Outlet />,
+					children: [
+						{ path: 'profile', element: <UserProfilePage /> },
+						{ path: 'edit', element: <EditUserPage /> },
+						{ index: true, element: <Navigate to='./profile' /> },
+						{ path: '*', element: <Navigate to='../profile' /> }
+					]
+				}
+			]
+		},
+		{ path: '*', element: <Navigate to='/' /> }
+	])
+
 	return (
 		<div>
-			<BrowserRouter>
-				<h1>App Layout</h1>
-				<Switch>
-					<Route path='/users' component={UsersLayout} />
-					<Route exact path='/' component={HomePage} />
-					<Redirect to='/' />
-				</Switch>
-			</BrowserRouter>
+			<h1>App Layout</h1>
+			{routes}
 		</div>
 	)
 }
@@ -27,36 +38,29 @@ function HomePage() {
 	return (
 		<>
 			<h2>Main page</h2>
-			<NavLink to={'/users'}>Users List page</NavLink>
+			<NavLink to='/users'>Users list Page</NavLink>
 		</>
 	)
 }
 
 function UsersLayout() {
-	const { path } = useRouteMatch()
 	return (
 		<div>
 			<h2>Users Layout</h2>
-			<NavLink to={'/'}>Main page</NavLink>
-			<Switch>
-				<Route path={path + '/:userId/profile'} component={UserProfilePage} />
-				<Route path={path + '/:userId/edit'} component={EditUserPage} />
-				<Route exact path={path} component={UserListPage} />
-				<Redirect from={path + '/:userId'} to={path + '/:userId/profile'} />
-			</Switch>
+			<NavLink to='/'>Home Page</NavLink>
+			<Outlet />
 		</div>
 	)
 }
 
 function UserListPage() {
-	const { path } = useRouteMatch()
 	return (
 		<div>
-			<h2>Users List page</h2>
+			<h2> User List Page</h2>
 			<ul>
 				{new Array(5).fill('').map((_, index) => (
-					<li key={'user_list_component' + index}>
-						<NavLink to={`${path}/${index + 1}`}>User {index + 1}</NavLink>
+					<li key={'user_list_component_' + index}>
+						<NavLink to={`${index + 1}/profile`}>User {index + 1}</NavLink>
 					</li>
 				))}
 			</ul>
@@ -68,7 +72,7 @@ function UserProfilePage() {
 	const { userId } = useParams()
 	return (
 		<div>
-			<h2>User page</h2>
+			<h2>UserPage</h2>
 			<ul>
 				<li>
 					<NavLink to='/users'>Users List page</NavLink>
@@ -78,7 +82,7 @@ function UserProfilePage() {
 				</li>
 			</ul>
 			<h3>Info</h3>
-			<p>userId: {userId}</p>
+			<p> userId: {userId}</p>
 		</div>
 	)
 }
@@ -91,13 +95,13 @@ function EditUserPage() {
 			<h2>Edit User Page</h2>
 			<ul>
 				<li>
-					<NavLink to={`/users/${userId}`}>User Profile page</NavLink>
+					<NavLink to={'/users/' + userId}>User profile Page</NavLink>
 				</li>
 				<li>
-					<NavLink to={`/users/${nextUser}`}>Another user</NavLink>
+					<NavLink to={`/users/${nextUser}`}> Another User</NavLink>
 				</li>
 				<li>
-					<NavLink to='/users'>Users List page</NavLink>
+					<NavLink to={'/users'}> Users List page</NavLink>
 				</li>
 			</ul>
 		</div>
